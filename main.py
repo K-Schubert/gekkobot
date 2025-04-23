@@ -48,12 +48,24 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
 
-# Optional system prompt
-try:
-    with open(Path(__file__).resolve().parent / "system_prompt.txt", "r", encoding="utf-8") as f:
-        system_prompt = f.read().strip()
-except FileNotFoundError:
-    system_prompt = "You are GekkoBot, an AI chatbot."
+# Determine base path for resource files
+if getattr(sys, 'frozen', False):
+    # We are running in a PyInstaller bundle
+    base_path = Path(sys._MEIPASS)
+    # For external files, use the executable's directory
+    external_path = Path(os.path.dirname(sys.executable))
+else:
+    # We are running in a normal Python environment
+    base_path = Path(__file__).parent
+    external_path = base_path
+
+# Load system prompt from external file if available, otherwise from bundled file
+system_prompt_path = external_path / "system_prompt.txt"
+if not system_prompt_path.exists():
+    system_prompt_path = base_path / "system_prompt.txt"
+
+with open(system_prompt_path, "r", encoding="utf-8") as f:
+    SYSTEM_PROMPT = f.read()
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(req: ChatRequest):
@@ -64,7 +76,7 @@ async def chat_endpoint(req: ChatRequest):
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": req.message},
             ],
             temperature=0.7,
