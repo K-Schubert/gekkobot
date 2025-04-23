@@ -1,4 +1,6 @@
 import os
+import sys
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -6,76 +8,81 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from pathlib import Path
-import sys
-
-def locate_env():
-    """Return the path to .env that lives next to the running file."""
-    if getattr(sys, "frozen", False):          # we are in a PyInstaller EXE
+# ----------------------------------------------------------
+# 1.  .env file location (still external to the bundled EXE)
+# ----------------------------------------------------------
+def locate_env() -> Path:
+    """Return Path to .env living next to the running file/exe."""
+    if getattr(sys, "frozen", False):          # PyInstaller one-file
         return Path(sys.executable).parent / ".env"
     return Path(__file__).resolve().parent / ".env"
 
-# Load environment variables
 load_dotenv(dotenv_path=locate_env(), override=True)
 
+# ----------------------------------------------------------
+# 2.  OpenAI client
+# ----------------------------------------------------------
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=OPENAI_API_KEY)
 
-# Initialize OpenAI API client
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-)
+# ----------------------------------------------------------
+# 3.  FastAPI app & static file handling (Fix A)
+# ----------------------------------------------------------
+app = FastAPI(title="Gekko AI Chatbot", docs_url="/docs")
 
-app = FastAPI(
-    title="Local AI Chatbot",
-    docs_url="/docs",  # keep Swagger UI for quick testing
-)
+# Determine where the frontend lives at runtime
+if getattr(sys, "frozen", False):
+    BASE_DIR = Path(sys._MEIPASS) / "frontend"         # type: ignore[attr-defined]
+else:
+    BASE_DIR = Path(__file__).resolve().parent / "frontend"
 
-# Mount static assets (CSS/JS)
-app.mount(
-    "/static",
-    StaticFiles(directory="frontend/static"),
-    name="static",
-)
+# Mount CSS/JS
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
+# ----------------------------------------------------------
+# 4.  Chat endpoint
+# ----------------------------------------------------------
 class ChatRequest(BaseModel):
     message: str
 
 class ChatResponse(BaseModel):
     response: str
 
+# Optional system prompt
 try:
-    with open("./system_prompt.txt", "r") as f:
+    with open(Path(__file__).resolve().parent / "system_prompt.txt", "r", encoding="utf-8") as f:
         system_prompt = f.read().strip()
-except Exception as e:
+except FileNotFoundError:
     system_prompt = "You are GekkoBot, an AI chatbot."
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(req: ChatRequest):
-    """Forward the user message to OpenAI and return the reply."""
     try:
-
         if not client.api_key:
-            raise Exception("OpenAI API key is not configured")
+            raise ValueError("OpenAI API key is not configured")
 
         completion = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": req.message}
+                {"role": "user", "content": req.message},
             ],
             temperature=0.7,
         )
-        content = completion.choices[0].message.content
-        return {"response": content}
+        return {"response": completion.choices[0].message.content}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
 
+# ----------------------------------------------------------
+# 5.  Serve the SPA entry point
+# ----------------------------------------------------------
 @app.get("/")
 async def root():
-    """Serve the single‑page chat UI."""
-    return FileResponse("frontend/index.html")
+    return FileResponse(BASE_DIR / "index.html")
 
-# Add this section to run the server when the script is executed directly
+# ----------------------------------------------------------
+# 6.  Dev runner
+# ----------------------------------------------------------
 if __name__ == "__main__":
     import uvicorn
     print("Starting the server on http://localhost:8000")
