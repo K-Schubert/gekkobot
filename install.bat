@@ -14,7 +14,7 @@ python -m pip install --upgrade pip
 pip install -r requirements.txt pyinstaller
 
 REM ----- 3. Run PyInstaller -----------------------------------
-pyinstaller --onefile --name chatbot --add-data "frontend;frontend" --collect-submodules uvicorn --collect-submodules starlette main.py
+pyinstaller --onefile --name gekkobot --add-data "frontend;frontend" --collect-submodules uvicorn --collect-submodules starlette main.py
 
 echo.
 echo Build complete!  You will find chatbot.exe inside the dist\ folder.
