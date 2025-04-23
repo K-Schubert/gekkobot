@@ -1,14 +1,28 @@
 @echo off
 REM ============================================================
-REM  Prompt the user for an OpenAI key and save it to .env
-REM  Place this script next to chatbot.exe or in the repo root
+REM  Prompt for OpenAI key -> write .env -> copy to dist\
+REM  Place and run this script in the project root.
 REM ============================================================
 setlocal
+
+REM --- 1. Ask user for a key ----------------------------------
 set /p KEY=Enter your OpenAI API key:
 if "%KEY%"=="" (
-    echo No key entered.  Nothing written.
-    goto :eof
+    echo No key entered. Nothing written.
+    goto done
 )
-echo OPENAI_API_KEY=%KEY%> "%~dp0\.env"
-echo Key saved to %~dp0.env
+
+REM --- 2. Write .env next to this script ----------------------
+echo OPENAI_API_KEY=%KEY%> "%~dp0.env"
+echo Key saved to "%~dp0.env"
+
+REM --- 3. Also drop a copy into dist\ (for chatbot.exe) -------
+if exist "%~dp0dist\" (
+    copy "%~dp0.env" "%~dp0dist" /Y > nul
+    echo .env also copied to "%~dp0dist\"
+) else (
+    echo dist\ folder not found — skipping copy.
+)
+
+:done
 pause
