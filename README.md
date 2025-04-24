@@ -12,7 +12,7 @@ Works as a tool for students to improve prompting skills and get a first experie
 # Easy Installation
 1. Install [python3.11](https://www.python.org/downloads/release/python-3110/) on your computer.
 2. Download the `.zip` project on [Github](https://github.com/k-schubert/gekkobot).
-3. After you download package.zip, right-click it, choose Properties → Unblock → OK, then extract.
+3. After you download `package.zip`, right-click it, choose Properties → Unblock → OK.
 4. Unzip file.
 5. Doubleclick `install.bat` and follow instructions.
 6. Doubleclick `configure_key.bat` and follow instructions (get Gemini API key [here](https://ai.google.dev/gemini-api/docs/api-key)).
