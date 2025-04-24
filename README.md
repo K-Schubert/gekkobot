@@ -16,12 +16,12 @@ Works as a tool for students to improve prompting skills and get a first experie
 4. Unzip file.
 5. Doubleclick `install.bat` and follow instructions.
 6. Doubleclick `configure_key.bat` and follow instructions (get Gemini API key [here](https://ai.google.dev/gemini-api/docs/api-key)).
-7. Go to `dist` and doubleclick on `gekkobot.exe`.
+7. Go to `dist` folder and doubleclick on `gekkobot.exe`.
 8. Go to `http://127.0.0.1:8000` in your browser.
 
 # Dev Installation
 1. Install [python3.11](https://www.python.org/downloads/release/python-3110/) on your computer.
-2. Update your python PATH:
+2. Update your python `PATH`:
     - `Windows + S`
     - Search for `Environment Variables`
     - Add new Environment variables for `Path` (Update *YourUsername* accordingly)
@@ -52,7 +52,7 @@ Works as a tool for students to improve prompting skills and get a first experie
     ```
     python main.py # Browse to http://127.0.0.1:8000
     ```
-9. To build .exe on a Windows machine:
+9. To build `.exe` on a Windows machine:
     ```
     pyinstaller --onefile --name gekkobot --add-data "frontend;frontend" --collect-submodules uvicorn --collect-submodules starlette main.py
     cd dist
