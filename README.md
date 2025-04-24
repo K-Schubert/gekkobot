@@ -1,9 +1,9 @@
 # gekkobot
-Simple AI chatbot for Gekko, packaged as an .exe file for Windows.
+Simple AI chatbot for [Gekko](https://www.betterdays.ngo), packaged as an .exe file for Windows.
 
 Uses Gemini Flash 2.0 model to leverage long-context.
 
-Works as a tool to improve prompting skills and get a first experience with AI chatbots.
+Works as a tool for students to improve prompting skills and get a first experience with AI chatbots.
 
 # How to configure
 - Set your API key in `.env`.
