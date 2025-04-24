@@ -6,7 +6,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from openai import OpenAI
+from google import genai
 
 # ----------------------------------------------------------
 # 1.  .env file location (still external to the bundled EXE)
@@ -20,10 +20,10 @@ def locate_env() -> Path:
 load_dotenv(dotenv_path=locate_env(), override=True)
 
 # ----------------------------------------------------------
-# 2.  OpenAI client
+# 2.  Gemini client
 # ----------------------------------------------------------
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=OPENAI_API_KEY)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 # ----------------------------------------------------------
 # 3.  FastAPI app & static file handling (Fix A)
@@ -70,18 +70,16 @@ with open(system_prompt_path, "r", encoding="utf-8") as f:
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(req: ChatRequest):
     try:
-        if not client.api_key:
-            raise ValueError("OpenAI API key is not configured")
+        if not client._api_client.api_key:
+            return {"response": "Please set your API key in the .env file."}
 
-        completion = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": req.message},
-            ],
-            temperature=0.7,
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            config=genai.types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT),
+            contents=req.message
         )
-        return {"response": completion.choices[0].message.content}
+        return {"response": response.text}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {e}")
 
