@@ -6,14 +6,14 @@ REM ============================================================
 setlocal
 
 REM --- 1. Ask user for a key ----------------------------------
-set /p KEY=Enter your OpenAI API key:
+set /p KEY=Enter your Gemini API key:
 if "%KEY%"=="" (
     echo No key entered. Nothing written.
     goto done
 )
 
 REM --- 2. Write .env next to this script ----------------------
-echo OPENAI_API_KEY=%KEY%> "%~dp0.env"
+echo GEMINI_API_KEY=%KEY%> "%~dp0.env"
 echo Key saved to "%~dp0.env"
 
 REM --- 3. Also drop a copy into dist\ (for chatbot.exe) -------
